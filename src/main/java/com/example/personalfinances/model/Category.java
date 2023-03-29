@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Builder
 @Data
@@ -19,7 +20,8 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
-    private String keyword;
+    @OneToMany
+    private Set<Keyword> keyword;
     @OneToMany
     private List<Expense> expenseList;
 

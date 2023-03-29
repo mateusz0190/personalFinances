@@ -1,4 +1,5 @@
 package com.example.personalfinances.model;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,10 +25,4 @@ public class Expense {
     private String accountNumber;
 
     private String comment;
-
-
-
-
-
-
 }

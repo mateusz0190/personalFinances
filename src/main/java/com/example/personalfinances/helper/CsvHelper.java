@@ -37,16 +37,25 @@ public class CsvHelper {
         return true;
     }
 
+    private static Iterable<CSVRecord> readCSV(InputStream inputStream) {
+        Iterable<CSVRecord> records;
+        try (InputStreamReader bufferedReader = new InputStreamReader(inputStream, "windows-1250")) {
+            CSVParser csvParser = new CSVParser(bufferedReader, CSVFormat.newFormat(';'));
+            records = csvParser.getRecords();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to import");
+        }
+        return records;
+
+    }
+
     public static List<Expense> CSVtoExpense(InputStream inputStream) throws IOException {
 
         List<Expense> expenses = new ArrayList<>();
         int counter = 0;
+        Iterable<CSVRecord> records = readCSV(inputStream);
 
-        try (InputStreamReader bufferedReader = new InputStreamReader(inputStream, "UTF-8")) {
-            CSVParser csvParser = new CSVParser(bufferedReader, CSVFormat.newFormat(';'));
-            Iterable<CSVRecord> records = csvParser.getRecords();
-
-            for (CSVRecord record :
+        for (CSVRecord record :
                     records) {
 
                 int data = 0;
@@ -75,9 +84,6 @@ public class CsvHelper {
                             .accountNumber(record.get(14))
                             .transactionId(record.get(7))
                             .build();
-
-                    System.out.println("expense.getTransactionId() = " + expense.getTransactionId());
-                    System.out.println("counter = " + counter);
                     expenses.add(expense);
 
                 } else if (record.get(0).contains(HEADERs[0])) {
@@ -85,26 +91,17 @@ public class CsvHelper {
                 }
             }
             return expenses;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to import");
-        }
+
     }
 
     public static Set<Category> CSVtoCategory(InputStream inputStream) throws IOException {
         Set<Category> categories = new HashSet<>();
-
-
-        try (InputStreamReader bufferedReader = new InputStreamReader(inputStream, "UTF-8")) {
-            CSVParser csvParser = new CSVParser(bufferedReader, CSVFormat.newFormat(';'));
-            Iterable<CSVRecord> records = csvParser.getRecords();
+        Iterable<CSVRecord> records = readCSV(inputStream);
             for (CSVRecord csvRecord :
                     records) {
                 Category category = Category.builder().name(csvRecord.get(0)).build();
                 categories.add(category);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed");
-        }
         return categories;
     }
 }

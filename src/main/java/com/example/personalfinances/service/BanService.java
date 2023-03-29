@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @AllArgsConstructor
 @Service
@@ -43,6 +41,21 @@ public class BanService {
         bankAccountNumber.setExpenses(set);
         banRepository.save(bankAccountNumber);
         return bankAccountNumber;
+    }
+
+    public List<BankAccountNumber> getAllassignedtoBankAccountNumber(){
+        List<BankAccountNumber> bankAccountNumbers = banRepository.findAll()
+                .stream()
+                .filter(bankAccountNumber -> bankAccountNumber.getExpenses().size() > 0)
+                .toList();
+        return bankAccountNumbers;
+    }
+
+
+    public void releaseAssignedExpenses(String accountName) {
+        BankAccountNumber bankAccountNumber = getByAccountName(accountName);
+        bankAccountNumber.setExpenses(new HashSet<>());
+        banRepository.save(bankAccountNumber);
     }
 
     public void assingExpenses(Expense expense) {

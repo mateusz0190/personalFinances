@@ -16,14 +16,14 @@ import java.util.Set;
 @AllArgsConstructor
 @Service
 public class CSVService {
-    private ExpenseRepository expenseRepository;
     private CategoryRepository categoryRepository;
+    private ExpenseService expenseService;
 
 
     public void saveExpenses(MultipartFile multipartFile) throws IOException {
         try {
-            List<Expense> expenseEntities = CsvHelper.CSVtoExpense(multipartFile.getInputStream());
-            expenseRepository.saveAll(expenseEntities);
+            CsvHelper.CSVtoExpense(multipartFile.getInputStream())
+                    .forEach(expense -> expenseService.createExpense(expense));
 
         } catch (IOException e) {
             throw new RuntimeException("problemm" + e.getMessage());

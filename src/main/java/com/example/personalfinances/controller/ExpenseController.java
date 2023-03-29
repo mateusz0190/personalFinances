@@ -1,5 +1,7 @@
 package com.example.personalfinances.controller;
 
+import com.example.personalfinances.controller.dto.GetMonthlyBilanceAllAccountsRequestDto;
+import com.example.personalfinances.controller.dto.GetMonthlyBilanceAllAccountsResponseDto;
 import com.example.personalfinances.helper.CsvHelper;
 import com.example.personalfinances.model.Expense;
 import com.example.personalfinances.service.CSVService;
@@ -54,4 +56,18 @@ public class ExpenseController {
         return ResponseEntity.ok(expenseService.getExpensesInMonth(date));
     }
 
+    @GetMapping(value = "/monthly")
+    public ResponseEntity<GetMonthlyBilanceAllAccountsResponseDto>
+    getMonthlyBilanceAllAccounts(@RequestBody GetMonthlyBilanceAllAccountsRequestDto requestDto) {
+        String date = requestDto.getYear() + requestDto.getMonthName();
+
+
+        return null;
+    }
+
+    @DeleteMapping
+    public ResponseEntity<HttpStatus> removeAll() {
+        expenseService.removeAll();
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }

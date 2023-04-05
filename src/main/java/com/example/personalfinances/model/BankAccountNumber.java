@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 @Builder
@@ -23,7 +24,7 @@ public class BankAccountNumber {
 
     private BigDecimal bilance;
     @OneToMany
-    private Set<Expense> expenses;
+    private List<Expense> expenses;
 
 
 }

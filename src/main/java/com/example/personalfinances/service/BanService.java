@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @AllArgsConstructor
@@ -20,6 +21,7 @@ public class BanService {
     public BankAccountNumber createAccount(BankAccountNumber ban) {
         String name = ban.getName();
         ban.setAlias(name.replaceAll(" ", ""));
+        ban.setBilance(BigDecimal.ZERO);
         return banRepository.save(ban);
     }
 
@@ -34,16 +36,13 @@ public class BanService {
     public BankAccountNumber assingExpense(String banId) {
         BankAccountNumber bankAccountNumber = banRepository.findById(banId).get();
         String name = "\"" + bankAccountNumber.getName() + "\"";
-        List<Expense> expenses = expenseRepository.findByBankName(name);
-        expenses = expenseRepository.findByAccountNumber(name);
-        Set<Expense> set = new HashSet<>(expenses);
-
-        bankAccountNumber.setExpenses(set);
+        List<Expense> expenses = expenseRepository.findByAccountNumber(name);
+        bankAccountNumber.setExpenses(expenses);
         banRepository.save(bankAccountNumber);
         return bankAccountNumber;
     }
 
-    public List<BankAccountNumber> getAllassignedtoBankAccountNumber(){
+    public List<BankAccountNumber> getAllassignedtoBankAccountNumber() {
         List<BankAccountNumber> bankAccountNumbers = banRepository.findAll()
                 .stream()
                 .filter(bankAccountNumber -> bankAccountNumber.getExpenses().size() > 0)
@@ -54,11 +53,25 @@ public class BanService {
 
     public void releaseAssignedExpenses(String accountName) {
         BankAccountNumber bankAccountNumber = getByAccountName(accountName);
-        bankAccountNumber.setExpenses(new HashSet<>());
+        bankAccountNumber.setExpenses(new ArrayList<>());
         banRepository.save(bankAccountNumber);
     }
 
-    public void assingExpenses(Expense expense) {
+    public void assingExpenseByBanName(Expense expense) {
+        BankAccountNumber bankAccountNumber = getByAccountName(expense.getAccountNumber());
+        List<Expense> expenses = bankAccountNumber.getExpenses();
+        expenses.add(expense);
 
+        BigDecimal bigDecimal = updateBilance(bankAccountNumber, expense.getTransactionValue());
+        bankAccountNumber.setExpenses(expenses);
+        bankAccountNumber.setBilance(bigDecimal);
+        banRepository.save(bankAccountNumber);
+    }
+
+    public BigDecimal updateBilance(BankAccountNumber bankAccountNumber, BigDecimal addedValue) {
+        BigDecimal bilance = bankAccountNumber.getBilance();
+        bilance = bilance.add(addedValue);
+
+        return bilance;
     }
 }

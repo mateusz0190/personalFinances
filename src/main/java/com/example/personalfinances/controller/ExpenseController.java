@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @RestController
@@ -53,16 +55,18 @@ public class ExpenseController {
 
     @GetMapping(value = "/monthly/{yearMonth}")
     public ResponseEntity<List<Expense>> getExpensesInMonthInYear(@PathVariable("yearMonth") String date) {
-        return ResponseEntity.ok(expenseService.getExpensesInMonth(date));
+        return ResponseEntity.ok(expenseService.getAllExpensesInMonth(date));
     }
 
     @GetMapping(value = "/monthly")
     public ResponseEntity<GetMonthlyBilanceAllAccountsResponseDto>
     getMonthlyBilanceAllAccounts(@RequestBody GetMonthlyBilanceAllAccountsRequestDto requestDto) {
         String date = requestDto.getYear() + requestDto.getMonthName();
+        Map<String, BigDecimal> categoryBigDecimalMap = expenseService.sumExpensesByCategoryInMonth(date);
 
-
-        return null;
+        return ResponseEntity.ok(GetMonthlyBilanceAllAccountsResponseDto.builder()
+                .monthlyCategoryBilance(categoryBigDecimalMap)
+                .build());
     }
 
     @DeleteMapping

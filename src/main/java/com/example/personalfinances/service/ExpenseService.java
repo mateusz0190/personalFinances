@@ -1,14 +1,17 @@
 package com.example.personalfinances.service;
 
 import com.example.personalfinances.model.BankAccountNumber;
+import com.example.personalfinances.model.Category;
 import com.example.personalfinances.model.Expense;
 import com.example.personalfinances.repository.ExpenseRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Stream;
 
 @AllArgsConstructor
 @Service
@@ -32,6 +35,7 @@ public class ExpenseService {
         Expense expense1 = duplicates.stream().findAny().orElseGet(
                 () -> expenseRepository.save(expense));
         categoryService.assignExpenseToDefaultCategory(expense1);
+        banService.assingExpenseByBanName(expense1);
         return expense1;
     }
 
@@ -45,8 +49,12 @@ public class ExpenseService {
         return expenseRepository.findByTransactionId(transactionId);
     }
 
-    public List<Expense> getExpensesInMonth(String date) {
-        List<Expense> expenses = getAll().stream().filter(expense -> {
+    public List<Expense> getAllExpensesInMonth(String date) {
+        return expensesInMonth(getAll().stream(), date);
+    }
+
+    public List<Expense> expensesInMonth(Stream<Expense> expenseStream, String date) {
+        List<Expense> expenses = expenseStream.filter(expense -> {
             LocalDate expenseDateTime = parseToDate(expense.getTransactionData());
             LocalDate requestDate = parseToDate(date);
             return (requestDate.getYear() == expenseDateTime.getYear()
@@ -68,8 +76,38 @@ public class ExpenseService {
         return map;
     }
 
-    public void getExpensesWithoutCategory(){
+    public void getExpensesWithoutCategory() {
 
+    }
+
+    public Map<String, BigDecimal> sumExpensesByCategoryInMonth(String yearMonth) {
+        LocalDate reportDate = parseToDate(yearMonth);
+        Map<String, BigDecimal> categoryMap = new HashMap<>();
+        categoryService.getAll().stream().forEach(category -> {
+
+            List<Expense> expenses = expensesByCategoryInMonth(category, yearMonth);
+            if (expenses.size() > 0) {
+                BigDecimal sumValueOfExpenses = sumValueOfExpenses(expenses);
+                categoryMap.put(category.getName(), sumValueOfExpenses);
+                System.out.println("categoryMap.size() = " + categoryMap.size());
+            }
+
+        });
+        return categoryMap;
+    }
+
+    public List<Expense> expensesByCategoryInMonth(Category category, String yearMM) {
+        return expensesInMonth(category.getExpenseList().stream(), yearMM);
+    }
+
+    public BigDecimal sumValueOfExpenses(List<Expense> expenses) {
+        BigDecimal sum = BigDecimal.valueOf(0.0);
+        for (Expense expense :
+                expenses) {
+            BigDecimal transactionValue = expense.getTransactionValue();
+            sum = sum.add(transactionValue);
+        }
+        return sum;
     }
 
     private LocalDate parseToDate(String data) {

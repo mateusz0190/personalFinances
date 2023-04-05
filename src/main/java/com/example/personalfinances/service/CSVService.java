@@ -26,7 +26,7 @@ public class CSVService {
                     .forEach(expense -> expenseService.createExpense(expense));
 
         } catch (IOException e) {
-            throw new RuntimeException("problemm" + e.getMessage());
+            throw new RuntimeException("problem" + e.getMessage());
         }
     }
 
@@ -36,7 +36,7 @@ public class CSVService {
             categoryRepository.saveAll(categories);
 
         } catch (IOException e) {
-            throw new RuntimeException("problemm" + e.getMessage());
+            throw new RuntimeException("problem" + e.getMessage());
         }
     }
 }

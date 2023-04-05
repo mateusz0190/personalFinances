@@ -62,7 +62,7 @@ public class CsvHelper {
                 int description = 2;
                 if (counter >= 1) {
 
-                    if (record.size() < 15) {
+                    if (record.size() < 15 || (record.get(0).isEmpty()&& record.get(1).isEmpty())) {
 
                         return expenses;
                     }

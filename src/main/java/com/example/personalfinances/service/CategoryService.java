@@ -9,6 +9,7 @@ import com.example.personalfinances.repository.CategoryRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -149,6 +150,7 @@ public class CategoryService {
                 .findFirst();
         return optionalCategory;
     }
+
 
 
     public boolean CategoryisPresentByID(long id) {

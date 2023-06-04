@@ -12,5 +12,6 @@ import java.util.Map;
 public class GetMonthlyBilanceAllAccountsResponseDto {
     private Map<String, BigDecimal> monthlyCategoryBilance;
     private  Map<String, BigDecimal> monthlyBanBilance;
+    private BigDecimal overall;
 
 }

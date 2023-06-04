@@ -34,6 +34,15 @@ public class CategoryController {
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
+    @PostMapping("/{categoryName}")
+    public ResponseEntity<HttpStatus> createCategory(@PathVariable("categoryName") String categoryName) {
+        Category category = Category.builder()
+                .name(categoryName)
+                .build();
+        categoryService.createCategory(category);
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+
 
     @PutMapping
     public ResponseEntity<AssignKeywordsToCategoryResponseDto>

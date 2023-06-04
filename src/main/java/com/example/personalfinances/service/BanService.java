@@ -18,6 +18,7 @@ public class BanService {
     private BankAccountNumberRepository banRepository;
     private ExpenseRepository expenseRepository;
 
+
     public BankAccountNumber createAccount(BankAccountNumber ban) {
         String name = ban.getName();
         ban.setAlias(name.replaceAll(" ", ""));
@@ -31,6 +32,10 @@ public class BanService {
 
     public BankAccountNumber getByAccountName(String accountName) {
         return banRepository.findByName(accountName).get(0);
+    }
+
+    public BankAccountNumber getByExpenseId(long id) {
+        return null;
     }
 
     public BankAccountNumber assingExpense(String banId) {
@@ -50,10 +55,32 @@ public class BanService {
         return bankAccountNumbers;
     }
 
+    public void releaseAssignedOneExpense(Expense expense) {
+        String accountName = expense.getAccountNumber();
+        BankAccountNumber bankAccountNumber = getByAccountName(accountName);
+        System.out.println("before removing:");
+        System.out.println("releaseAssignedOneExpense-bankAccountNumber.getBilance() = " + bankAccountNumber.getBilance());
+        List<Expense> expenses1 = bankAccountNumber.getExpenses();
+        LinkedList<Expense> expenses = new LinkedList<>(expenses1);
+        if (expenses.contains(expense)) {
+            boolean remove = expenses.remove(expense);
+            bankAccountNumber.setExpenses(expenses);
+            BigDecimal minus = BigDecimal.valueOf(-1.0);
+            BigDecimal multiply = expense.getTransactionValue().multiply(minus);
+            bankAccountNumber.setBilance(updateBilance(bankAccountNumber, multiply));
+            System.out.println("after removing:");
+            System.out.println("releaseAssignedOneExpense-bankAccountNumber.getBilance() = " + bankAccountNumber.getBilance());
+        } else {
+            System.out.println("Not found expense to remove");
+        }
+
+        banRepository.save(bankAccountNumber);
+    }
 
     public void releaseAssignedExpenses(String accountName) {
         BankAccountNumber bankAccountNumber = getByAccountName(accountName);
         bankAccountNumber.setExpenses(new ArrayList<>());
+        bankAccountNumber.setBilance(BigDecimal.ZERO);
         banRepository.save(bankAccountNumber);
     }
 
@@ -71,7 +98,7 @@ public class BanService {
     public BigDecimal updateBilance(BankAccountNumber bankAccountNumber, BigDecimal addedValue) {
         BigDecimal bilance = bankAccountNumber.getBilance();
         bilance = bilance.add(addedValue);
-
         return bilance;
     }
+
 }

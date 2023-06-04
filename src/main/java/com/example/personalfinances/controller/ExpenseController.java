@@ -1,12 +1,15 @@
 package com.example.personalfinances.controller;
 
+import com.example.personalfinances.controller.dto.GetCategoryAndExpenseListResponseDto;
 import com.example.personalfinances.controller.dto.GetMonthlyBilanceAllAccountsRequestDto;
 import com.example.personalfinances.controller.dto.GetMonthlyBilanceAllAccountsResponseDto;
 import com.example.personalfinances.helper.CsvHelper;
+import com.example.personalfinances.model.Category;
 import com.example.personalfinances.model.Expense;
 import com.example.personalfinances.service.CSVService;
 import com.example.personalfinances.service.ExpenseService;
 import lombok.AllArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,12 +66,34 @@ public class ExpenseController {
     getMonthlyBilanceAllAccounts(@RequestBody GetMonthlyBilanceAllAccountsRequestDto requestDto) {
         String date = requestDto.getYear() + requestDto.getMonthName();
         Map<String, BigDecimal> categoryBigDecimalMap = expenseService.sumExpensesByCategoryInMonth(date);
-
+        Map<String, BigDecimal> banBigDecimalMap = expenseService.sumExpensesByBanInMonth(date);
+        BigDecimal bigDecimal = expenseService.sumValueOfExpenses(expenseService.getAllExpensesInMonth(date));
         return ResponseEntity.ok(GetMonthlyBilanceAllAccountsResponseDto.builder()
                 .monthlyCategoryBilance(categoryBigDecimalMap)
+                .monthlyBanBilance(banBigDecimalMap)
+                .overall(bigDecimal)
                 .build());
     }
 
+    @GetMapping(value = "/monthly/{date1}/{categoryName}")
+    public ResponseEntity<List<Expense>> getExpensesByCategoryInMonth(
+            @PathVariable("categoryName") String categoryName, @PathVariable("date1") String date1) {
+        List<Expense> expenses = expenseService.expensesByCategoryNameInMonth(categoryName, date1);
+
+        return ResponseEntity.ok(expenses);
+    }
+
+    // TODO
+    @GetMapping(value = "/expense/report/{date}")
+    public ResponseEntity<HttpStatus> getMonthlyCategoryAndExpenseListReportToCSV(
+            @PathVariable("date") String date) throws IOException {
+        Map<Category, List<Expense>> stringListMap = expenseService.expensesInAllCategories(date);
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+//@PutMapping
+//public ResponseEntity<List<Expense>> mergeTransactionId(){
+//        return ResponseEntity.ok(expenseService.updateEmptyTransactionId());
+//}
     @DeleteMapping
     public ResponseEntity<HttpStatus> removeAll() {
         expenseService.removeAll();

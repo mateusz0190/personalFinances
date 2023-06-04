@@ -6,39 +6,60 @@ import com.example.personalfinances.model.Category;
 import com.example.personalfinances.model.Expense;
 import com.example.personalfinances.model.Keyword;
 import com.example.personalfinances.repository.CategoryRepository;
+import com.example.personalfinances.repository.ExpenseRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @AllArgsConstructor
 @Service
 public class CategoryService {
     private CategoryRepository categoryRepository;
     private KeywordService keywordService;
+    private ExpenseRepository expenseRepository;
 
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
 
     public Category getByName(String name) {
         Category byName = categoryRepository.findByName(name);
-        Category category1 = categoryRepository.findAll()
-                .stream()
-                .filter(category -> category.getName().equals(name))
-                .findFirst()
-                .get();
-        return category1;
+        return byName;
     }
 
     public List<Category> getAll() {
         return categoryRepository.findAll();
     }
 
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public Category getById(long id) {
+        return categoryRepository.findById(id).orElse(new Category());
     }
+
+    public Optional<Category> getByKeyword(String kName) {
+        List<Category> all = getAll();
+        Keyword keyword = keywordService.getByKeywordId(kName);
+        Optional<Category> optionalCategory = all.stream()
+                .filter(category -> category.getKeyword().contains(keyword))
+                .findFirst();
+        return optionalCategory;
+    }
+
+    public Optional<Category> getByExpense(Expense expense) {
+        return getAll().stream()
+                .filter(category -> category.getExpenseList().size() > 0)
+                .takeWhile(category -> category.getExpenseList().contains(expense))
+                .findFirst();
+    }
+
+    public boolean CategoryisPresentByID(long id) {
+        Optional<Category> categoryOptional = categoryRepository.findById(id);
+        return categoryOptional.isPresent();
+    }
+
 
     //  Sprawdzic czy kategoria istnieje
 //     Y: sprawdzic czy keyword istnieje
@@ -137,25 +158,24 @@ public class CategoryService {
         expenseList.forEach(expense -> assignExpenseToDefaultCategory(expense));
     }
 
-
-    public Category getById(long id) {
-        return categoryRepository.findById(id).orElse(new Category());
+    public Category releaseAllExpensesFromCategory(Category category) {
+        category.setExpenseList(new ArrayList<>());
+        categoryRepository.save(category);
+        return category;
     }
 
-    public Optional<Category> getByKeyword(String kName) {
-        List<Category> all = getAll();
-        Keyword keyword = keywordService.getByKeywordId(kName);
-        Optional<Category> optionalCategory = all.stream()
-                .filter(category -> category.getKeyword().contains(keyword))
-                .findFirst();
-        return optionalCategory;
-    }
-
-
-
-    public boolean CategoryisPresentByID(long id) {
-        Optional<Category> categoryOptional = categoryRepository.findById(id);
-        return categoryOptional.isPresent();
+    //TODO
+    public Category releaseOneExpenseFromCategory(Expense expense) {
+        Optional<Category> optionalCategory = getByExpense(expense);
+        if (optionalCategory.isPresent()) {
+            Category category = optionalCategory.get();
+            System.out.println("category.getExpenseList().size() = " + category.getExpenseList().size());
+            category.getExpenseList().remove(expense);
+            System.out.println("category.getExpenseList().size() = " + category.getExpenseList().size());
+            return categoryRepository.save(category);
+        }
+        System.out.println("No such category!");
+        return optionalCategory.orElse(new Category());
     }
 
     public Category removeById(long id) {
@@ -167,35 +187,5 @@ public class CategoryService {
         categoryRepository.deleteById(id);
         return category;
     }
-//      TO do:
-    //
-//    public void getMonthlyCategoryBilance(String date) {
-//        List<Category> categoriesWithExpenses = getAll()
-//                .stream()
-//                .filter(category -> category.getExpenseList().size() > 0)
-//                .toList();
-//        for (Category category :
-//                categoriesWithExpenses) {
-//            BigDecimal income = new BigDecimal(0);
-//            AtomicReference<BigDecimal> outcome = new AtomicReference<>(income);
-//            Stream<Expense> stream = category.getExpenseList().stream();
-//            stream.takeWhile(expense -> Boolean.valueOf(expense.getTransactionValue().signum() != 0))
-//                    .forEach(expense -> income = income.add(expense.getTransactionValue()));
-//
-//            stream.takeWhile(expense -> !Boolean.valueOf(expense.getTransactionValue().signum() != 0))
-//                    .forEach(expense -> outcome = outcome.get().add(expense.getTransactionValue()));
-//
-//            BigDecimal bilance = outcome.get().add(income);
-//        }
-//    }
 
-    private LocalDate parseToDate(String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        if (date.length() <= 6) {
-            formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-            date = date + "01";
-        }
-        LocalDate parse = LocalDate.parse(date, formatter);
-        return parse;
-    }
 }

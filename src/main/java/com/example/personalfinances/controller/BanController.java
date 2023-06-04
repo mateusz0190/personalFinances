@@ -31,8 +31,7 @@ public class BanController {
     }
 
     @PutMapping("/{alias}")
-    public ResponseEntity<BankAccountNumber>
-    assignExpenses(@PathVariable("alias") String id) {
+    public ResponseEntity<BankAccountNumber> assignExpenses(@PathVariable("alias") String id) {
         return ResponseEntity.ok(banService.assingExpense(id));
     }
 }

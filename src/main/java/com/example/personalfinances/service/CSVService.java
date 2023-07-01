@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -18,7 +19,7 @@ import java.util.Set;
 public class CSVService {
     private CategoryRepository categoryRepository;
     private ExpenseService expenseService;
-
+    private CategoryService categoryService;
 
     public void saveExpenses(MultipartFile multipartFile) throws IOException {
         try {
@@ -39,5 +40,32 @@ public class CSVService {
             throw new RuntimeException("problem" + e.getMessage());
         }
     }
+
+    public void updateExpensesToNewCategory(MultipartFile multipartFile) throws IOException {
+        try {
+            
+            Map<Long, Category> longCategoryMap = CsvHelper.csvToCategoryExpenseMap(multipartFile.getInputStream());
+            for (Long expenseId: longCategoryMap.keySet()
+                 ) {
+                Optional<Expense> expenseOptional = expenseService.getById(expenseId);
+                if (expenseOptional.isPresent()) {
+                    Expense expense = expenseOptional.get();
+                    Category category = longCategoryMap.get(expenseId);
+                    categoryService.assignExpenseToDifferentCategory(expense,category);
+                }
+            }
+
+            for (Category category :
+                    longCategoryMap.values()) {
+
+            }
+            expenseService.getById(1l);
+//expenseService.updateExpense(longCategoryMap);
+
+        } catch (IOException e) {
+            throw new RuntimeException("problem" + e.getMessage());
+        }
+    }
+
 }
 

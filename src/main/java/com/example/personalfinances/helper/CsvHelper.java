@@ -2,6 +2,7 @@ package com.example.personalfinances.helper;
 
 import com.example.personalfinances.model.Category;
 import com.example.personalfinances.model.Expense;
+import com.example.personalfinances.service.CategoryService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CsvHelper {
+    private static CategoryService categoryService;
     public static String TYPE = "text/csv";
     //TODO read header from csv file
     static String[] ingHEADERs = {
@@ -118,7 +120,7 @@ public class CsvHelper {
         return categories;
     }
 
-    //  TODO
+
     public void ExpenseAndCategoryToCSV(Map<Category, List<Expense>> categoryExpensesMap) throws IOException {
         String dateTimeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Charset charset = Charset.forName("windows-1250");
@@ -156,14 +158,18 @@ public class CsvHelper {
         csvFile.close();
     }
 
-    public Map<Category, List<Expense>> csvToCategoryExpenseMap(InputStream inputStream) {
-        Map<Category, List<Expense>> categoryListMap = new HashMap<>();
+    public static Map<Long, Category> csvToCategoryExpenseMap(InputStream inputStream) {
+        Map<Long, Category> longCategoryMap = new HashMap<>();
         Iterable<CSVRecord> records = readCSV(inputStream);
         for (CSVRecord record :
                 records) {
-            String id = record.get(0);
-
+            if (record.get(8).equals("to update")) {
+                Long id = Long.parseLong(record.get(0));
+                String categoryName = record.get(9);
+                Category category = categoryService.getByName(categoryName);
+                longCategoryMap.put(id, category);
+            }
         }
-        return null;
+        return longCategoryMap;
     }
 }

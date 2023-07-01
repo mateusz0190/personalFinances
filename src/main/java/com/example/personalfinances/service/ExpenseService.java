@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @AllArgsConstructor
@@ -36,8 +35,9 @@ public class ExpenseService {
 
     public Expense createExpense(Expense expense) {
         expense = prepareToCreateExpense(expense);
-        if (updateEmptyTransactionId(expense).isPresent()) {
-            Expense expenseToUpdate = updateEmptyTransactionId(expense).get();
+        Optional<Expense> expenseOptional = updateEmptyTransactionId(expense);
+        if (expenseOptional.isPresent()) {
+            Expense expenseToUpdate = expenseOptional.get();
             expenseToUpdate.setTransactionId(expense.getTransactionId());
             return expenseRepository.save(expenseToUpdate);
         }
@@ -68,7 +68,7 @@ public class ExpenseService {
         List<Expense> toCheckOrUpdateList = getByTransactionId("toCheckOrUpdate");
         return toCheckOrUpdateList.stream()
                 .filter(expense1 -> expense1.getTransactionData().equals(inputExpense.getTransactionData()))
-                .filter(expense1 -> expense1.getTransactionValue().equals(inputExpense.getTransactionValue()))
+                .filter(expense1 -> expense1.getTransactionValue().compareTo((inputExpense.getTransactionValue())) == 0)
                 .findFirst();
     }
 
@@ -77,10 +77,14 @@ public class ExpenseService {
         System.out.println("size = " + size);
         return expenseRepository.findAll();
     }
+    public Optional<Expense> getById(Long id) {
+        return expenseRepository.findById(id);
+    }
 
     public List<Expense> getByTransactionId(String transactionId) {
         return expenseRepository.findByTransactionId(transactionId);
     }
+
 
     public List<Expense> getAllExpensesInMonth(String date) {
         return expensesInMonth(getAll().stream(), date);
@@ -107,6 +111,11 @@ public class ExpenseService {
             map.put(bankAccountNumber, list);
         }
         return map;
+    }
+
+    public void updateExpense(Map<String, Category> stringCategoryMap) {
+
+
     }
 
     // TODO
@@ -206,6 +215,7 @@ public class ExpenseService {
         categoryService.getAll().stream().forEach(category -> categoryService.releaseAllExpensesFromCategory(category));
         expenseRepository.deleteAll(getAll());
     }
+
 
 
 }

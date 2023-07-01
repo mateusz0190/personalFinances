@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 @AllArgsConstructor
 @Service
 public class CategoryService {
     private CategoryRepository categoryRepository;
     private KeywordService keywordService;
-    private ExpenseRepository expenseRepository;
+
 
     public Category createCategory(Category category) {
         return categoryRepository.save(category);
@@ -54,6 +54,7 @@ public class CategoryService {
                 .takeWhile(category -> category.getExpenseList().contains(expense))
                 .findFirst();
     }
+
 
     public boolean CategoryisPresentByID(long id) {
         Optional<Category> categoryOptional = categoryRepository.findById(id);
@@ -148,6 +149,15 @@ public class CategoryService {
         Category category1 = getByKeyword(keyword.getKeywordName()).get();
         category1.getExpenseList().add(expense);
         categoryRepository.save(category1);
+
+    }
+
+    public Category assignExpenseToDifferentCategory(Expense expense, Category newCategory) {
+        Category oldCategory = releaseOneExpenseFromCategory(expense);
+        System.out.println("oldCategoryName = " + oldCategory.getName());
+        List<Expense> expenseList = newCategory.getExpenseList();
+        expenseList.add(expense);
+        return categoryRepository.save(newCategory);
 
     }
 
